@@ -5,7 +5,10 @@ const { getProduct, getABC, getCustomOrder, getAddProduct, postAddProduct,
     getAddCategory, getCategory, getUser, getCart,
     postAddCategory, postDeleteCategory, getUpdateCategory, postUpdateCategory,
     getCategoryForProduct, getLogin, postLogin,
-    getAllProduct } = require('../controllers/adminController');
+    getAllProduct, getAllProductByName, getAllCategory, 
+    getProductOutstanding, getAddProductOutstanding, postAddProductOutstanding, postDeleteProductOutstanding, 
+    getUpdateProductOutstanding, postUpdateProductOutstanding, getAllProductOutstanding,
+    getAllCategoryByName, getAddToCart, postAddToCart} = require('../controllers/adminController');
 
 
 router.get('/product', getProduct);  
@@ -40,11 +43,33 @@ router.get('/getCategoryForProduct', getCategoryForProduct);
 
 router.get('/user', getUser);
 
-router.get('/cart', getCart)
 
 router.get('/login', getLogin);
+
 router.post('./login', postLogin);
 
 router.get('/api/getAllProduct', getAllProduct);
+
+router.get('/api/getAllProductByName', getAllProductByName);
+
+router.get('/api/getAllCategory', getAllCategory);
+
+router.get('/api/getAllCategoryByName', getAllCategoryByName);
+
+router.get('/product-outstanding', getProductOutstanding);
+router.get('/add-product-outstanding', getAddProductOutstanding);
+router.post('/add-product-outstanding', postAddProductOutstanding);
+router.post('/delete-product-outstanding', postDeleteProductOutstanding);
+router.get('/update-product-outstanding', getUpdateProductOutstanding);
+router.post('/update-product-outstanding', postUpdateProductOutstanding);
+
+router.get('/api/getAllProductOutstanding', getAllProductOutstanding);
+
+// router.get('/cart', getCart);
+// router.get('/api/getAddToCart', getAddToCart);
+
+// router.post('/api/add-to-cart', postAddToCart);
+
+
 
 module.exports = router;

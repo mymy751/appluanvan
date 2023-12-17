@@ -29,14 +29,89 @@ const getUpdateProduct = (req, res) => {
     const productName = req.query.productName;
     const productImage = req.query.productImage;
     const productPrice = req.query.productPrice;
-    const productStatus = req.query.productStatus
+    const productStatus = req.query.productStatus;
+    const productDiameter = req.query.productDiameter;
+    const productHeight = req.query.productHeight;
+    const productDescription = req.query.productDescription;
+    const productCategory = req.query.productCategory;
+
+    // print("proooooosss ", productDiameter),
+    // print("proooooosss ", productHeight),
+    // print("proooooosss ", productDescription),
+    // print("proooooosss ", productCategory),
+    console.log('proooooosss,', productPrice);
+
+    console.log('proooooosss,', productDiameter);
 
     res.render("./updateProduct.ejs", { 
         productId: productId,
         productName: productName,
         productImage: productImage,
         productPrice: productPrice,
-        productStatus: productStatus
+        productStatus: productStatus,
+        productDiameter: productDiameter,
+        productHeight: productHeight,
+        productDescription: productDescription,
+        productCategory: productCategory
+    });
+};
+
+const getProductOutstanding = (req, res) => {
+   connection.query(`select * from productoutstanding`, (err, results) => {
+    res.render("./productOutstanding.ejs", {data: results});
+   })
+}
+const getAddProductOutstanding = (req, res) => {
+    res.render("./addProductOustanding.ejs");
+};
+
+const postAddProductOutstanding = (req, res) => {
+    const { productName, productPrice, productImage, statusProduct, productDiameter, productHeight, productDescription, productCategory} = req.body; //destructering Object
+
+    console.log('categoryId', productCategory); 
+
+    // Thực hiện thêm sản phẩm vào cơ sở dữ liệu ở đây
+    const query = `
+        INSERT INTO productoutstanding (product_name, product_price, product_image, 
+            status_product, product_diameter, product_height, product_description, product_category)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+   
+    connection.query(query, [productName, productPrice, productImage, statusProduct, productDiameter, productHeight, productDescription, productCategory], (err, results) => {
+        if (err) {
+            console.error('Lỗi thêm sản phẩm noi bat: ', err);
+            return;
+        }
+    
+    res.send(`<script>alert('Đã thêm Sản phẩm noi bat ${productName} thành công'); window.location.href = '/product-outstanding';</script>`);
+    });
+}
+
+const postDeleteProductOutstanding = (req, res) => {
+    const {productId} = req.body;
+
+    // console.log("Req.body: ", JSON.parse(req.body));
+
+    if (!productId) {
+        res.json({ success: false, message: 'Thiếu thông tin productId.' });
+        return;
+    }
+
+    // Thực hiện xóa sản phẩm trong cơ sở dữ liệu
+    const query = `
+        DELETE FROM productoutstanding
+        WHERE id_product = ?
+    `;
+
+    // console.log("Query xóa: ",query);
+    connection.query(query, [productId], (err, results) => {
+        if (err) {
+            console.error('Lỗi xóa sản phẩm noi bat: ', err);
+            res.json({ success: false, message: 'Có lỗi xảy ra khi xóa sản phẩm noi bat.' });
+            return;
+        }
+
+        res.json({ message: `Đã Xóa Sản phẩm noi bat ${productId} thành công` });
     });
 };
 
@@ -83,7 +158,9 @@ const getUser = (req, res) => {
 }
 
 const getCart = (req, res) => {
-    res.render('./cart.ejs');
+    connection.query(`select * from cart`, (err, results) => {
+        res.render("./cart.ejs", {data: results});
+    })
 };
 //Thêm Sản Phẩm
 const postAddProduct = (req, res) => {
@@ -95,7 +172,7 @@ const postAddProduct = (req, res) => {
     // Thực hiện thêm sản phẩm vào cơ sở dữ liệu ở đây
     const query = `
         INSERT INTO products (product_name, product_price, product_image, 
-            status_product, product_diameter, product_height, product_description, id_category)
+            status_product, product_diameter, product_height, product_description, product_category)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
    
@@ -137,21 +214,66 @@ const postDeleteProduct = (req, res) => {
         res.json({ message: `Đã Xóa Sản phẩm ${productId} thành công` });
     });
 };
+const getUpdateProductOutstanding = (req, res) => {
+    const productId = req.query.productId;
+    const productName = req.query.productName;
+    const productImage = req.query.productImage;
+    const productPrice = req.query.productPrice;
+    const productStatus = req.query.productStatus;
+    const productDiameter = req.query.productDiameter;
+    const productHeight = req.query.productHeight;
+    const productDescription = req.query.productDescription;
+    const productCategory = req.query.productCategory;
 
-//Cập nhật sản phẩm
-const postUpdateProduct = (req, res) =>{
-    const { productName, productImage, productPrice, statusProduct, productCategory, productId} = req.body;
+    res.render("./updateProductOutstanding.ejs", { 
+        productId: productId,
+        productName: productName,
+        productImage: productImage,
+        productPrice: productPrice,
+        productStatus: productStatus,
+        productDiameter: productDiameter,
+        productHeight: productHeight,
+        productDescription: productDescription,
+        productCategory: productCategory
+    });
+};
+
+const postUpdateProductOutstanding = (req, res) =>{
+    const { productName, productImage, productPrice, statusProduct, productDiameter, productHeight, productDescription, productCategory, productId} = req.body;
 
     //Thực hiện cập nhật sản phẩm trong cơ sở dữ liệu
-    console.log('productCategoryyyyy', productCategory);
+    // console.log('productCategoryyyyy', productCategory);
     
     const query = `
-            UPDATE products
-            SET product_name = ?, product_image = ?, product_price = ?, status_product = ?, id_category = ?
+            UPDATE productoutstanding
+            SET product_name = ?, product_image = ?, product_price = ?, status_product = ?, product_diameter = ?, product_height = ?, product_description = ?, product_category = ?
             WHERE id_product = ?
     `;
 
-    connection.query(query, [productName, productImage, productPrice, statusProduct, productCategory, productId ], (err, results) => {
+    connection.query(query, [productName, productImage, productPrice, statusProduct, productDiameter, productHeight, productDescription, productCategory, productId ], (err, results) => {
+        if (err) {
+            console.error('Lỗi cập nhật sản phẩm noi bat: ', err);
+            res.json({ success: false, message: 'Có lỗi xảy ra khi cập nhật sản phẩm.' });
+            return;
+        };
+        res.send(`<script>alert('Đã cập nhật Sản phẩm noi bat ${productId} thành công'); window.location.href = '/product-outstanding';</script>`);
+    });
+};
+
+//Cập nhật sản phẩm
+const postUpdateProduct = (req, res) =>{
+    const { productName, productImage, productPrice, statusProduct, productDiameter, productHeight, productDescription, productCategory, productId} = req.body;
+
+    //Thực hiện cập nhật sản phẩm trong cơ sở dữ liệu
+    // console.log('productCategoryyyyy', productCategory);
+    
+    const query = `
+            UPDATE products
+            SET product_name = ?, product_image = ?, product_price = ?, status_product = ?, product_diameter = ?, product_height = ?, product_description = ?, product_category = ?
+            WHERE id_product = ?
+    `;
+
+    connection.query(query, [productName, productImage, productPrice, statusProduct, productDiameter, productHeight, productDescription, productCategory, productId ], (err, results) => {
         if (err) {
             console.error('Lỗi cập nhật sản phẩm: ', err);
             res.json({ success: false, message: 'Có lỗi xảy ra khi cập nhật sản phẩm.' });
@@ -238,9 +360,80 @@ const getAllProduct = (req, res) => {
        res.setHeader('Content-Type', 'application/json');
        res.end(JSON.stringify(results));
     });
-    
-       
+}
+
+const getAllProductOutstanding = (req, res) => {
+    connection.query(`select * from productoutstanding`, (err, results) => { //Này là câu truy vấn query 
+        // console.log(results); //trước khi render thì phải gọi câu truy vấn dữ liệu
+       // res.render("./product.ejs", {data: results});
+       res.setHeader('Content-Type', 'application/json');
+       res.end(JSON.stringify(results));
+    });
+}
+
+const getAllProductByName =(req, res) => {
+    let sql = `select * from products where product_name like ?`;
+
+    connection.query(sql, [`%${req.query.queryName}%`], (err, results) => {
+        console.log(req.query.queryName);
+        res.setHeader('Content-Type', 'application/json');
+        console.log(results);
+        res.end(JSON.stringify(results));
+
+    });
+}
+
+const getAllCategory = (req, res) => {
+    connection.query(`select * from category`, (err, results) => {
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify(results));
+
+        console.log(results);
+    });
+
    
+}
+
+const getAllCategoryByName = (req, res) => {
+    let sql = `select * from products where product_category = ?`;
+    console.log("sql: ", sql);
+    connection.query(sql, [`${req.query.queryName}`], (err, results) => {
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify(results));
+        console.log("resdsv", results);
+    })
+};
+
+
+const getAddToCart = async (req, res) => {
+    connection.query(`select * from cart`, (err, results) => {
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify(results));
+        console.log(results);
+    });
+}
+
+const postAddToCart = (req, res) => {
+
+    console.log(req.body);
+
+    const {id_cart, totalAmount, quality, productId, productName, productImage, productPrice} = req.body; //destructering Object
+
+    // Thực hiện thêm sản phẩm vào cơ sở dữ liệu ở đây
+    const query = `
+        INSERT INTO cart (id_cart, total_amount, quality,  
+            id_product, product_name, product_image, product_price)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    `;
+    
+    connection.query(query, [id_cart, totalAmount, quality, productId, productName, productImage, productPrice], (err, results) => {
+        if (err) {
+            console.error('Lỗi thêm vao cart: ', err);
+            return;
+        }
+    
+    // res.send(`<script>alert('Đã thêm Sản phẩm ${productName} thành công'); window.location.href = '/cart';</script>`);
+    });
 }
 
 module.exports = {
@@ -263,5 +456,17 @@ module.exports = {
     getCategoryForProduct,
     getLogin,
     postLogin,
-    getAllProduct
+    getAllProduct,
+    getAllProductByName,
+    getAllCategory,
+    getProductOutstanding,
+    getAddProductOutstanding,
+    postAddProductOutstanding,
+    postDeleteProductOutstanding,
+    getUpdateProductOutstanding,
+    postUpdateProductOutstanding,
+    getAllProductOutstanding,
+    getAllCategoryByName,
+    getAddToCart,
+    postAddToCart,
 };

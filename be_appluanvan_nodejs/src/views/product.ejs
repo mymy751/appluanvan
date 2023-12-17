@@ -42,6 +42,9 @@
                     <td><%= data[i]['product_price'] %></td>
                     <td><img src="<%= data[i]['product_image'] %>" style="width: 100px; height: 80px;"></td>
                     <td><%= data[i]['status_product'] %></td>
+                    <!-- <td><%= data[i]['product_diameter'] %></td>
+                    <td><%= data[i]['product_height'] %></td>
+                    <td><%= data[i]['product_description'] %></td> -->
                     <td>
                         <button class="btn-delete" data-productid="<%= data[i]['id_product'] %>">
                             <i class="fas fa-trash"></i>
@@ -51,7 +54,11 @@
                             data-productname="<%= data[i]['product_name'] %>"
                             data-productimage="<%= data[i]['product_image'] %>"
                             data-productprice="<%= data[i]['product_price'] %>"
-                            data-productstatus="<%= data[i]['status_product'] %>">
+                            data-productdiameter="<%= data[i]['product_diameter'] %>"
+                            data-productheight="<%= data[i]['product_height'] %>"
+                            data-productdescription="<%= data[i]['product_description'] %>"
+                            data-productstatus="<%= data[i]['status_product'] %>"
+                            data-productcategory="<%= data[i]['product_category'] %>">
                             <i class="fas fa-pen"></i>
                         </button>
                     </td>
@@ -97,8 +104,16 @@
         const productImage = this.dataset.productimage;
         const productPrice = this.dataset.productprice;
         const productStatus = this.dataset.productstatus;
+        const productDiameter = this.dataset.productdiameter;
+        const productHeight = this.dataset.productheight;
+        const productDescription = this.dataset.productdescription;
+        const productCategory= this.dataset.productcategory;
 
-        window.location.href = '/update-product?productId='+ productId + '&productName='+ productName + '&productImage='+ productImage + '&productPrice='+ productPrice + '&productStatus=' + productStatus;
+
+        window.location.href = '/update-product?productId='+ productId + '&productName='+ productName + 
+        '&productImage='+ productImage + '&productPrice='+ productPrice + 
+        '&productStatus=' + productStatus + '&productDiameter=' + productDiameter + 
+        '&productHeight=' + productHeight + '&productDescription=' + productDescription + '&productCategory=' + productCategory;    
        
     });
 });

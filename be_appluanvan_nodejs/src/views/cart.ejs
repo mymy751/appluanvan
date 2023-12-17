@@ -25,19 +25,29 @@
         <table>
             <tr>
                 <td>Id</td>
-                <td>Id User</td>
+                <td>Id Product</td>
+                <td>Product Name</td>
+                <td>Prduct Image</td>
+                <td>Product Price</td>
                 <td>Quality</td>
                 <td>Total Amount</td>
-                <td>Status</td>
+
             </tr>
             <tr>
-                <td>1</td>
-                <td>2</td>
-                <td>1</td>
-                <td>1</td>
-                <td>1</td>
+                <% for(var i=0; i<data.length; i++) { %>
+                    <tr>
+                        <td><%= data[i]['id_cart'] %></td>
+                        <td><%= data[i]['id_product'] %></td>
+                        <td><%= data[i]['product_name'] %></td>
+                        <td><img src="<%= data[i]['product_image'] %>" style="width: 100px; height: 80px;"></td>
+                        <td><%= data[i]['product_price'] %></td>
+                        <td><%= data[i]['quality'] %></td>
+                        <td><%= data[i]['total_amount'] %></td>
+                    </tr>
+                <% } %>
             </tr>
         </table>
     </div>
 </body>
+
 </html>

@@ -1,12 +1,13 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:futterhocviec/api/api.dart';
+import 'package:futterhocviec/api/cart.dart';
+import 'package:futterhocviec/api/category.dart';
 import 'package:futterhocviec/api/product.dart';
+import 'package:futterhocviec/api/productoutstanding.dart';
 import 'package:futterhocviec/common/app_colors.dart';
 import 'package:futterhocviec/page/cart.dart';
+import 'package:futterhocviec/page/dashboard.dart';
 import 'package:futterhocviec/page/detail-product.dart';
-import 'package:http/http.dart' as http;
 
 class HomePage extends StatefulWidget {
   HomePage({super.key});
@@ -16,17 +17,40 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  late Future<List<Product>> cakeList;
-  var _currPageValue = 0.0;
-
   final _textClear = TextEditingController();
-
   PageController pageController = PageController(viewportFraction: 0.85);
+
+  late Future <List<Product>> cakeList;
+  late Future <List<Product>> fillterProduct;
+
+  late Future <List<Category>> categoryList;
+
+  // List<CartProduct> cart = [];
+
+  late Future <List<ProductOutstanding>> listProductOutstanding;
+
+  String _selected = "";
+
+   late Future<Cart> futureCart;
 
   @override
   void initState() {
-    cakeList = fetchProduct();
+    futureCart = Cart.initialize();
     super.initState();
+    cakeList = fetchProduct();
+    categoryList = fetchCategory();
+
+    listProductOutstanding = fetchProductOutstanding();
+  }
+  void searchProducts (String query){
+    print(query);
+    setState(() {
+      if(query.isEmpty){
+        cakeList = fetchProduct();
+      }else {
+        cakeList = fetchfillterListProduct(query);
+      }
+    });
   }
 
   @override
@@ -34,6 +58,67 @@ class _HomePageState extends State<HomePage> {
     return SafeArea(
       child: Scaffold(
         backgroundColor: AppColors.backgroundApp,
+        //============================IN DASHBOARD===========================//
+        drawer: Drawer(
+          child: ListView(
+            children: [
+              DrawerHeader(
+                child: Align(child: Text('Danh mục sản phẩm', style: TextStyle(fontSize: 24),)),
+                decoration: BoxDecoration(
+                  color: AppColors.appbarColor,
+                ),
+              ),
+              FutureBuilder<List<Category>>(
+                future: categoryList,
+                builder: (context, snapshot){
+                  if(snapshot.hasData) {
+                    List<Category> categories = snapshot.data ?? [];
+                    if (categories.isEmpty){
+                      return Container();
+                    }
+                    else {
+                      return ListView.builder(
+                        physics: NeverScrollableScrollPhysics(),
+                        shrinkWrap: true,
+                        itemCount: categories.length,
+                        itemBuilder: (context, index){
+                          var category = categories[index];
+                          return ListTile(
+                            title: Text(category.categoryName, style: TextStyle(fontSize: 20),),
+                            onTap: () {
+                              // cakeList = fetchfillterListProduct(_selected);
+                              setState(() {
+                                _selected = category.categoryName;
+                                print("Selected category: $_selected");
+                                cakeList = fetchfillterListCategory(_selected);
+                                print("Cake list: $cakeList");
+                              });
+                              Navigator.pop(context);
+                            },
+                          );
+                        },
+                      );
+                    }
+                  } else if (snapshot.hasError) {
+                    return Text('${snapshot.error}');
+                  }
+                  return const CircularProgressIndicator();
+                },
+              ),
+              InkWell(
+                  onTap: (){
+                    setState(() {
+                      searchProducts("");
+                    });
+                    Navigator.pop(context);
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14),
+                    child: Text("All Product", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),),
+                  ))
+            ],
+          ),
+        ),
         body: SingleChildScrollView(
           child: Column(
               children: [
@@ -45,14 +130,21 @@ class _HomePageState extends State<HomePage> {
                     child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
+                          //====================DASHBOARD=====================//
+                          Dashboard(),
+                          
+                          SizedBox(width: 5,),
                           Expanded(
                             child: Center(
                               child: TextField(
+                                onChanged: (value){
+                                  searchProducts(value);
+                                },
                                 controller: _textClear,
                                 style: TextStyle(fontSize: 20),
                                 decoration: InputDecoration(
                                   hintText: 'Search Cake',
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 20),
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 15),
                                   border: OutlineInputBorder(
                                     borderSide: BorderSide(color: Colors.black12),
                                     borderRadius: BorderRadius.circular(25),
@@ -70,14 +162,14 @@ class _HomePageState extends State<HomePage> {
                                         IconButton(
                                         onPressed: (){
                                           _textClear.clear();
+                                          searchProducts("");
                                         },
                                         icon: Icon(Icons.clear, color: Colors.black,),
-                                      ),
+                                        ),
                                         Icon(Icons.search_rounded, color: Colors.black,),
-                      ]
+                                      ]
                                     ),
                                   ),
-
                                 ),
                               ),
                             ),
@@ -91,7 +183,7 @@ class _HomePageState extends State<HomePage> {
                                 child:
                                 InkWell(
                                     onTap: (){
-                                      Navigator.push(context, MaterialPageRoute(builder: (context) => Cart()));
+                                      Navigator.push(context, MaterialPageRoute(builder: (context) => PageCart()));
                                     },
                                     child: Icon(Icons.shopping_cart_outlined)
                                 ),
@@ -108,161 +200,365 @@ class _HomePageState extends State<HomePage> {
                 ),
 
                 //===============================PAGEVIEW - 2CAI BOX============================//
-                Container(
-                  margin: EdgeInsets.only(bottom: 12),
-                    height: 300,
-                    child: InkWell(
-                      onTap: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => DetailProduct()));
-                      },
-                      child: PageView.builder(
-                          controller: pageController,
-                          itemCount: 5,
-                          itemBuilder: (context, position) {
-                            return Stack(
-                              children: [
-                                Container(
-                                  height: 220,
-                                  margin: EdgeInsets.only(right: 10, left: 5),
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(30),
-                                      image: DecorationImage(
-                                          fit: BoxFit.cover,
-                                          image: AssetImage(
-                                              "assets/images/cake5.jpg"
-                                          )
-                                      )
-                                  ),
-                                ),
-                                Align(
-                                  alignment: Alignment.bottomCenter,
-                                  child: Container(
-                                    height: 120,
-                                    width: 200,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(30),
-                                      color: AppColors.box2Color,
-                                    ),
-                                    child: Container(
-                                      padding: EdgeInsets.only(top: 8.0),
-                                      child: Column(
-                                        // crossAxisAlignment: CrossAxisAlignment.start,
-                                        // mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Text('NameCake', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),),
-                                          SizedBox(height: 5),
-                                          Text( "Price"),
-                                          SizedBox(height: 5),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                )
-                              ],
-                            );
-                          }
-                      ),
-                    ),
-                  ),
-                // ),
-
-                //===================================LISTVIEW=====================================//
-                ListView.builder(
-                    physics: NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      itemCount: 10,
-                      itemBuilder: (content, position){
-                        return Card(
+                FutureBuilder<List<ProductOutstanding>> (
+                  future: listProductOutstanding,
+                  builder: (BuildContext context, index) {
+                    if(index.hasData) {
+                      List<ProductOutstanding> prodOutstanding = index.data ?? [];
+                      if (prodOutstanding.isEmpty) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24.0, vertical: 35),
                           child: Container(
-                            margin: EdgeInsets.all(6.0),
-                            child: Row(
-                              children: [
-                                InkWell(
-                                  onTap: (){
-                                    Navigator.push(context, MaterialPageRoute(builder: (context) => DetailProduct()));
-                                  },
-                                  child: Container(
-                                    width: 120,
-                                    height: 100,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(30),
-                                      color: Colors.blue,
-                                      image:DecorationImage(
-                                        fit: BoxFit.cover,
-                                        image: AssetImage(
-                                          "assets/images/cake5.jpg"
-                                        )
-                                      )
-                                    ),
-                                  ),
-                                ),
+                              height: 200,
+                              decoration: BoxDecoration(
+                                color: AppColors.boxColor,
+                                borderRadius: BorderRadius.circular(40),
+                              ),
+                              child: Center(child: Text("Chua Co Du lieu!",
+                                style: TextStyle(
+                                    color: Colors.red, fontSize: 24),))
+                          ),
+                        );
+                      } else {
+                        return Container(
+                          margin: EdgeInsets.only(bottom: 12),
+                          height: 300,
+                          child: InkWell(
+                            onTap: () {
+                              // Navigator.push(context, MaterialPageRoute(builder: (context) => DetailProduct(product: )));
+                            },
+                            child: PageView.builder(
+                                controller: pageController,
+                                itemCount: prodOutstanding.length,
+                                itemBuilder: (context, index) {
+                                  ProductOutstanding pOutstanding = prodOutstanding[index];
 
-                                Expanded(
-                                  child: Container(
-                                    height: 100,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.only(
-                                        topRight: Radius.circular(20),
-                                        bottomRight:Radius.circular(20),
+                                  return Stack(
+                                    children: [
+                                      Container(
+                                        height: 220,
+                                        margin: EdgeInsets.only(right: 10, left: 5),
+                                        decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(50),
+                                        ),
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(30),
+                                          child: Image.network(
+                                            width: 300,
+                                            height: 220,
+                                            fit: BoxFit.cover,
+                                            pOutstanding.productImage
+                                          ),
+                                        ),
                                       ),
-                                      // color: Colors.pink,
-                                    ),
-                                    child: Padding(
-                                      padding: EdgeInsets.only(left: 20, right: 10, top: 2),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Text('NameCake', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),),
-                                          SizedBox(height: 5),
-                                          Text( "Price"),
-                                          SizedBox(height: 5),
-                                          Align(
-                                            alignment: Alignment.centerRight,
-                                            child: Container(
-                                              padding: EdgeInsets.only(bottom: 2),
-                                              width: 90,
-                                              height: 35,
-                                              decoration: BoxDecoration(
-                                                borderRadius: BorderRadius.circular(5),
-                                                color: AppColors.boxColor,
-                                              ),
-                                              child: Center(child: Text("Add to Cart", style: TextStyle(fontSize: 16),)),
+                                      Align(
+                                        alignment: Alignment.bottomCenter,
+                                        child: Container(
+                                          height: 120,
+                                          width: 200,
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(
+                                                30),
+                                            color: AppColors.box2Color,
+                                          ),
+                                          child: Container(
+                                            padding: EdgeInsets.only(top: 8.0),
+                                            child: Column(
+                                              children: [
+                                                Text('NameCake',
+                                                  style: TextStyle(fontSize: 20,
+                                                    fontWeight: FontWeight
+                                                        .w600,),),
+                                                SizedBox(height: 5),
+                                                Text("Price"),
+                                                SizedBox(height: 5),
+                                              ],
                                             ),
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
+                                          ),
+                                        ),
+                                      )
+                                    ],
+                                  );
+                                }
                             ),
                           ),
                         );
                       }
-                  ),
+                    }
+                    else if(index.hasError){
+                      return Text('${index.error}');
+                    }
+                    return const CircularProgressIndicator();
+                  },
+                ),
+
+                //===================================LISTVIEW=====================================//
+                FutureBuilder<List<Product>>(
+                  future: cakeList,
+                  builder: (BuildContext context, snapshot){
+                    if (snapshot.hasData) {
+                      List<Product> products = snapshot.data ?? [];
+                      if(products.isEmpty){
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 35),
+                          child: Container(
+                              height: 200,
+                              decoration: BoxDecoration(
+                                color: AppColors.boxColor,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Center(child: Text("Chua Co Du lieu!", style: TextStyle(color: Colors.red, fontSize: 24),))
+                          ),
+                        );
+                      } else {
+                        return ListView.builder(
+                          physics: NeverScrollableScrollPhysics(),
+                          shrinkWrap: true,
+                          itemCount: products.length,
+                          itemBuilder: (content, index) {
+                            Product product = products[index];
+                            print(product);
+                            return SingleChildScrollView(
+                              child: Card(
+                                child: Container(
+                                  margin: EdgeInsets.all(6.0),
+                                  child: Row(
+                                    children: [
+                                      InkWell(
+                                        onTap: () {
+                                          Navigator.push(context, MaterialPageRoute(builder: (context) =>
+                                              DetailProduct(product: product)));
+                                        },
+                                        child: Container(
+                                          width: 120,
+                                          height: 100,
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(30),
+                                          ),
+                                          child: Image.network(
+                                              fit: BoxFit.cover,
+                                              product.productImage,
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Container(
+                                          height: 100,
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.only(
+                                              topRight: Radius.circular(20),
+                                              bottomRight: Radius.circular(20),
+                                            ),
+                                            // color: Colors.pink,
+                                          ),
+                                          child: Padding(
+                                            padding: EdgeInsets.only(
+                                                left: 20, right: 10, top: 2),
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment
+                                                  .start,
+                                              mainAxisAlignment: MainAxisAlignment
+                                                  .center,
+                                              children: [
+                                                Text(product.productName,
+                                                  style: TextStyle(
+                                                      fontSize: 20,
+                                                      fontWeight: FontWeight
+                                                          .w600),),
+                                                Text(product.productPrice),
+                                                SizedBox(height: 5),
+                                                GestureDetector(
+                                                  onTap: () async {
+                                                    Cart cart = await futureCart;
+                                                    print("$cart");
+                                                    cart.add(product);
+                                                    Navigator.push(context, MaterialPageRoute(builder: (context) =>
+                                                              PageCart()));
+                                                    // FutureBuilder<Cart>(
+                                                    //   future: futureCart,
+                                                    //   builder: (context, index){
+                                                    //     Cart? cart = index.data;
+                                                    //     if(cart != null){
+                                                    //       cart.add(product);
+                                                    //       Navigator.push(context, MaterialPageRoute(builder: (context) =>
+                                                    //           PageCart()));
+                                                    //     }
+                                                    //     return const CircularProgressIndicator();
+                                                    //   },
+                                                    // );
+                                                  },
+                                                  child: Align(
+                                                    alignment: Alignment.centerRight,
+                                                    child: Container(
+                                                      width: 120,
+                                                      height: 35,
+                                                      decoration: BoxDecoration(
+                                                        borderRadius: BorderRadius.circular(5),
+                                                        color: AppColors.boxColor,
+                                                      ),
+                                                      child: Center(child: Text(
+                                                        "Add to Cart",
+                                                        style: TextStyle(
+                                                            fontSize: 16, fontWeight: FontWeight.w500),)
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                                // FutureBuilder<Cart>(
+                                                //   future: futureCart,
+                                                //   builder: (context, index){
+                                                //     if(index.hasData){
+                                                //       Cart? cart = index.data;
+                                                //       if(cart != null){
+                                                //         return GestureDetector(
+                                                //           onTap: () async {
+                                                //             await cart.add(product);
+                                                //             print("cart.listCartItems, ${cart.listCartItems}");
+                                                //             Navigator.push(context, MaterialPageRoute(builder: (context) =>
+                                                //                 PageCart()));
+                                                //           },
+                                                //           child: Align(
+                                                //             alignment: Alignment.centerRight,
+                                                //             child: Container(
+                                                //               width: 120,
+                                                //               height: 35,
+                                                //               decoration: BoxDecoration(
+                                                //                 borderRadius: BorderRadius.circular(5),
+                                                //                 color: AppColors.boxColor,
+                                                //               ),
+                                                //               child: Center(child: Text(
+                                                //                 "Add to Cart",
+                                                //                 style: TextStyle(
+                                                //                     fontSize: 16, fontWeight: FontWeight.w500),)
+                                                //               ),
+                                                //             ),
+                                                //           ),
+                                                //         );
+                                                //       }
+                                                //     }
+                                                //     return const CircularProgressIndicator();
+                                                //   },
+                                                // )
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      }
+                    } else if (snapshot.hasError) {
+                      return Text('${snapshot.error}');
+                    }
+                    // By default, show a loading spinner.
+                    return const CircularProgressIndicator();
+                  },
+                ),
+            //     ListView.builder(
+            //   physics: NeverScrollableScrollPhysics(),
+            //   shrinkWrap: true,
+            //   itemCount: products.length,
+            //   itemBuilder: (content, index) {
+            //     Product product = products[index];
+            //     print(product.productImage);
+            //     return SingleChildScrollView(
+            //       child: Card(
+            //         child: Container(
+            //           margin: EdgeInsets.all(6.0),
+            //           child: Row(
+            //             children: [
+            //               InkWell(
+            //                 onTap: () {
+            //                   Navigator.push(context, MaterialPageRoute(builder: (context) =>
+            //                       DetailProduct(product: product)));
+            //                 },
+            //                 child: Container(
+            //                   width: 120,
+            //                   height: 100,
+            //                   decoration: BoxDecoration(
+            //                     borderRadius: BorderRadius.circular(30),
+            //                   ),
+            //                   child: Image.network(
+            //                     fit: BoxFit.cover,
+            //                     product.productImage,
+            //                   ),
+            //                 ),
+            //               ),
+            //
+            //               Expanded(
+            //                 child: Container(
+            //                   height: 100,
+            //                   decoration: BoxDecoration(
+            //                     borderRadius: BorderRadius.only(
+            //                       topRight: Radius.circular(20),
+            //                       bottomRight: Radius.circular(20),
+            //                     ),
+            //                     // color: Colors.pink,
+            //                   ),
+            //                   child: Padding(
+            //                     padding: EdgeInsets.only(
+            //                         left: 20, right: 10, top: 2),
+            //                     child: Column(
+            //                       crossAxisAlignment: CrossAxisAlignment
+            //                           .start,
+            //                       mainAxisAlignment: MainAxisAlignment
+            //                           .center,
+            //                       children: [
+            //                         Text(product.productName,
+            //                           style: TextStyle(
+            //                               fontSize: 20,
+            //                               fontWeight: FontWeight
+            //                                   .w600),),
+            //                         Text(product.productPrice),
+            //                         SizedBox(height: 5),
+            //                         GestureDetector(
+            //                           onTap: (){
+            //                             setState(() {
+            //                               // CartProduct data = CartProduct(0, 0, 0, 0, "", "", "");
+            //                               // cart.add(data);
+            //                               // AddCart(product);
+            //                             });
+            //                             Navigator.push(context, MaterialPageRoute(builder: (context) => PageCart()));
+            //                           },
+            //                           child: Align(
+            //                             alignment: Alignment.centerRight,
+            //                             child: Container(
+            //                               width: 120,
+            //                               height: 35,
+            //                               decoration: BoxDecoration(
+            //                                 borderRadius: BorderRadius.circular(5),
+            //                                 color: AppColors.boxColor,
+            //                               ),
+            //                               child: Center(child: Text(
+            //                                 "Add to Cart",
+            //                                 style: TextStyle(
+            //                                     fontSize: 16, fontWeight: FontWeight.w500),)
+            //                               ),
+            //                             ),
+            //                           ),
+            //                         )
+            //                       ],
+            //                     ),
+            //                   ),
+            //                 ),
+            //               ),
+            //             ],
+            //           ),
+            //         ),
+            //       ),
+            //     );
+            //   },
+            // ),
               ]
           ),
         ),
       ),
     );
-  }
-
-
-  List<Product> parseProduct(String responseBody){
-    final parsed = json.decode(responseBody).cast<Map<String, dynamic>>();
-    return parsed.map<Product>((json) => Product.fromJson(json)).toList();
-  }
-
-  Future<List<Product>> fetchProduct() async {
-   final response = await http.get(Uri.parse('http://192.168.2.185:4000/api/getAllProduct'));
-    //final response = await http.get(Uri.parse('https:192.168.56.2/api/getAllProduct'));
-    print('===response: ' );
-    print(response.body);
-    if(response.statusCode == 200){
-      return parseProduct(response.body);
-    } else {
-      throw Exception('Unable to fetch product from the REST API');
-    }
   }
 }

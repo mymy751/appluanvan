@@ -5,16 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Update Category</title>
 
+    <link rel="stylesheet" href="css/css.form.css"> 
+
 </head>
 <body>
-    <form action="/update-category" method="post">
+    <div class="container-page">
+        <h2>Update Category</h2>
+        <form action="/update-category" method="post" class="custom-form">
 
-        <input type="text" id="categoryId" name="categoryId" value="<%= categoryId %>" readonly><br>
-
-        <label for="categoryName">Category Name</label>
-        <input type="text" id="categoryName" name="categoryName" value="<%= categoryName %>" required><br>
-
-        <input type="submit" value="Update Category">
-    </form>
+            <label for="categoryName">Category Id:</label>
+            <input type="text" id="categoryId" name="categoryId" value="<%= categoryId %>" readonly><br>
+    
+            <label for="categoryName">Category Name</label>
+            <input type="text" id="categoryName" name="categoryName" value="<%= categoryName %>" required><br>
+    
+            <input type="submit" value="Update Category">
+        </form>
+    </div>
 </body>
 </html>

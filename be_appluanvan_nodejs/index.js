@@ -12,6 +12,7 @@
 
 
 const express = require('express');
+const ngrok = require('ngrok');
 
 const webRouter = require('./src/routes/route.js');
 const path = require('path');
@@ -29,13 +30,13 @@ const port = 4000;
 
 
 
-connection.query(createCategoryTable, (err, results) =>{ //này là để kiểm tra đã tạo đc bảng chưa
-    if(err){
-        console.log('Error creating users table', err);
-    }else{
-        console.log('Successfully created users table');
-    }
-});
+// connection.query(createCategoryTable, (err, results) =>{ //này là để kiểm tra đã tạo đc bảng chưa
+//     if(err){
+//         console.log('Error creating users table', err);
+//     }else{
+//         console.log('Successfully created users table');
+//     }
+// });
 
 app.use(express.json()); //body parser
 
@@ -60,3 +61,9 @@ app.listen(port, () => {
 // module.exports = {
 //     connection,
 // };
+
+(async function() {
+    const url = await ngrok.connect(4000)
+    
+    console.log('url', url);
+  })();

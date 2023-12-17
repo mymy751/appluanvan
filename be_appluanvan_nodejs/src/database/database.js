@@ -52,8 +52,8 @@ const createProductsTable = `
     );
 `;
 
-const createOrdersTable = `
-    CREATE TABLE IF NOT EXISTS orders (
+const createCartTable = `
+    CREATE TABLE IF NOT EXISTS cart (
        id_order INT AUTO_INCREMENT PRIMARY KEY,
        status VARCHAR(255),
        id_user INT,
@@ -97,7 +97,7 @@ const createCustomOrder =`
 module.exports = {
     createUsersTable,
     createProductsTable,
-    createOrdersTable,
+    createCartTable,
     createDetailOrdersTable,
     createCategoryTable,
     createCustomOrder

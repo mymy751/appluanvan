@@ -1,10 +1,27 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:futterhocviec/api/cart.dart';
+import 'package:futterhocviec/api/product.dart';
 import 'package:futterhocviec/common/app_colors.dart';
 import 'package:futterhocviec/page/cart.dart';
 
-class DetailProduct extends StatelessWidget {
-  const DetailProduct({super.key});
+class DetailProduct extends StatefulWidget {
+  final Product product;
+  const DetailProduct({super.key, required this.product});
+
+
+  @override
+  State<DetailProduct> createState() => _DetailProductState();
+}
+class _DetailProductState extends State<DetailProduct> {
+
+  // List<CartProduct> cart = [];
+
+  @override
+  void initState() {
+
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,14 +35,12 @@ class DetailProduct extends StatelessWidget {
                 left: 0, right: 0,
                   child: Container(
                     height: 300,
-                    // width: double.maxFinite,
                     decoration: BoxDecoration(
-                      image: DecorationImage(
-                        fit: BoxFit.cover,
-                        image: AssetImage(
-                          "assets/images/cake5.jpg"
-                        )
-                      )
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: Image.network(
+                      widget.product.productImage,
+                      fit: BoxFit.cover,
                     ),
                   )
               ),
@@ -38,7 +53,6 @@ class DetailProduct extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Container(
-                      // margin: EdgeInsets.all(8.0),
                       child: InkWell(
                         onTap: (){
                           Navigator.pop(context);
@@ -57,7 +71,7 @@ class DetailProduct extends StatelessWidget {
                     ),
                     InkWell(
                       onTap: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => Cart()));
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => PageCart()));
                       },
                       child: Container(
                         height: 45,
@@ -94,7 +108,7 @@ class DetailProduct extends StatelessWidget {
                             ],
                           ),
                           Padding(
-                            padding: EdgeInsets.only(top: 24,),
+                            padding: EdgeInsets.only(top: 24, right: 24),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -103,7 +117,7 @@ class DetailProduct extends StatelessWidget {
                                   child: Row(
                                     children: [
                                       Text( "Chieu cao: ",
-                                        style: TextStyle(fontSize: 18),
+                                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w200),
                                       ),
                                       Container(
                                         padding: EdgeInsets.only(left: 8),
@@ -113,7 +127,7 @@ class DetailProduct extends StatelessWidget {
                                           textAlignVertical: TextAlignVertical.center,
                                           decoration: InputDecoration(
                                               contentPadding: EdgeInsets.symmetric(horizontal: 12),
-                                              hintText: "abs",
+                                              hintText: widget.product.productHeight.toString(),
                                               border: OutlineInputBorder(
                                                   borderRadius: BorderRadius.circular(15),
                                                   borderSide: BorderSide(width: 1, color: Colors.white24)
@@ -131,7 +145,7 @@ class DetailProduct extends StatelessWidget {
                                   child: Row(
                                     children: [
                                       Text( "Duong  kinh: ",
-                                        style: TextStyle(fontSize: 18),
+                                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w200),
                                       ),
                                       Container(
                                         padding: EdgeInsets.only(left: 8),
@@ -141,7 +155,7 @@ class DetailProduct extends StatelessWidget {
                                           textAlignVertical: TextAlignVertical.center,
                                           decoration: InputDecoration(
                                               contentPadding: EdgeInsets.symmetric(horizontal: 12),
-                                              hintText: "abs",
+                                              hintText: widget.product.productDiameter.toString(),
                                               border: OutlineInputBorder(
                                                   borderRadius: BorderRadius.circular(15),
                                                   borderSide: BorderSide(width: 1, color: Colors.white24)
@@ -159,10 +173,10 @@ class DetailProduct extends StatelessWidget {
                                   ),
                                 ),
                                 SizedBox(height: 10),
-                                Text( "Mot tram hat mua khong hat mua nao roi "
+                                Text("Mot tram hat mua khong hat mua nao roi "
                                     "nham cho, gap mot tram nguoi khong nguoi nao "
                                     "la ngau nhien. Kiep truoc ngoai dau 500 lan "
-                                    "doi lai kiep nay mot lan gap go."
+                                    "doi lai kiep nay mot lan gap go.", textAlign: TextAlign.justify, style: TextStyle(fontWeight: FontWeight.w300),
                                 ),
                               ],
                             ),

@@ -1,0 +1,57 @@
+body {
+    background-color: #f2f2f2;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* height: 100vh; */
+    margin: 0;
+}
+
+.container-page{
+    margin: 0;
+    padding: 20px;
+    background-color: #ffffff; 
+    width: 500px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.9); /* Đổ bóng nhẹ */
+    margin-top: 40px;
+    box-sizing: border-box; /* Tính cả padding và border vào kích thước */
+    margin-bottom: 30px;
+    border-radius: 1%;
+  
+  }
+  h2 {
+    margin-top: 10px;
+    margin-bottom: 20px; /* Đặt khoảng cách giữa "Add Product" và các trường dưới nó */
+    text-align: center; /* Căn giữa "Add Product" */
+  }
+  .custom-form label {
+    /* display: block; */
+    display: inline-block; 
+    text-align: left; 
+    width: 150px; 
+    margin-bottom: 5px;
+    
+  }
+  
+  .custom-form input,
+  .custom-form select {
+    padding: 4px;
+    width: calc(100% - 160px); /* Giảm chiều rộng để làm cho input gần nhau hơn */
+    margin-bottom: 6px;
+    box-sizing: border-box;
+    
+  }
+  
+  .custom-form input[type="submit"] {
+    background-color: #4cae50; /* Màu nền xanh cho nút submit */
+    color: #fff;
+    cursor: pointer;
+    width: 100%; /* Chiều rộng 100% */
+    padding: 10px;
+    margin-top: 20px;
+  }
+  
+  .custom-form input[type="submit"]:hover {
+    background-color: #45a049; /* Màu nền xanh nhạt khi hover */
+    
+  }
